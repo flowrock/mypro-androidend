@@ -25,32 +25,32 @@ import io.ruoyan.pxnavigator.Utils;
 /**
  * Created by Miroslaw Stanek on 20.01.15.
  */
-public class UserProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     private static final int PHOTO_ANIMATION_DELAY = 600;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
 
 
-    private final Context context;
-    private final int cellSize;
+    private final Context mContext;
+    private final int mCellSize;
 
-    private final List<String> photos;
+    private final List<String> mPhotos;
 
-    private boolean lockedAnimations = false;
-    private int lastAnimatedItem = -1;
+    private boolean mLockedAnimations = false;
+    private int mLastAnimatedItem = -1;
 
-    public UserProfileAdapter(Context context) {
-        this.context = context;
-        this.cellSize = Utils.getScreenWidth(context) / 3;
-        this.photos = Arrays.asList(context.getResources().getStringArray(R.array.user_photos));
+    public GridPhotosAdapter(Context context) {
+        mContext = context;
+        mCellSize = Utils.getScreenWidth(context) / 3;
+        mPhotos = Arrays.asList(context.getResources().getStringArray(R.array.user_photos));
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final View view = LayoutInflater.from(context).inflate(R.layout.item_photo, parent, false);
+        final View view = LayoutInflater.from(mContext).inflate(R.layout.item_photo, parent, false);
         StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
-        layoutParams.height = cellSize;
-        layoutParams.width = cellSize;
+        layoutParams.height = mCellSize;
+        layoutParams.width = mCellSize;
         layoutParams.setFullSpan(false);
         view.setLayoutParams(layoutParams);
         return new PhotoViewHolder(view);
@@ -62,9 +62,9 @@ public class UserProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     private void bindPhoto(final PhotoViewHolder holder, int position) {
-        Picasso.with(context)
-                .load(photos.get(position))
-                .resize(cellSize, cellSize)
+        Picasso.with(mContext)
+                .load(mPhotos.get(position))
+                .resize(mCellSize, mCellSize)
                 .centerCrop()
                 .into(holder.ivPhoto, new Callback() {
                     @Override
@@ -77,12 +77,12 @@ public class UserProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
                     }
                 });
-        if (lastAnimatedItem < position) lastAnimatedItem = position;
+        if (mLastAnimatedItem < position) mLastAnimatedItem = position;
     }
 
     private void animatePhoto(PhotoViewHolder viewHolder) {
-        if (!lockedAnimations) {
-            if (lastAnimatedItem == viewHolder.getPosition()) {
+        if (!mLockedAnimations) {
+            if (mLastAnimatedItem == viewHolder.getPosition()) {
                 setLockedAnimations(true);
             }
 
@@ -103,7 +103,7 @@ public class UserProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
 
     @Override
     public int getItemCount() {
-        return photos.size();
+        return mPhotos.size();
     }
 
     static class PhotoViewHolder extends RecyclerView.ViewHolder {
@@ -119,6 +119,6 @@ public class UserProfileAdapter extends RecyclerView.Adapter<RecyclerView.ViewHo
     }
 
     public void setLockedAnimations(boolean lockedAnimations) {
-        this.lockedAnimations = lockedAnimations;
+        mLockedAnimations = lockedAnimations;
     }
 }

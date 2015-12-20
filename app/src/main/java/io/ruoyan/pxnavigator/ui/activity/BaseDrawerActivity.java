@@ -10,7 +10,7 @@ import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
 
 /**
- * Created by Miroslaw Stanek on 15.07.15.
+ * Modified by Ruoyan Liu on 07.12.15.
  */
 public class BaseDrawerActivity extends BaseActivity {
 
@@ -26,6 +26,7 @@ public class BaseDrawerActivity extends BaseActivity {
 
     }
 
+    //define the behavior of toolbar navigation button
     @Override
     protected void setupToolbar() {
         super.setupToolbar();

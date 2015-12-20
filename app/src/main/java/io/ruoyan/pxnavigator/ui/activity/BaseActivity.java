@@ -12,7 +12,9 @@ import butterknife.Optional;
 import io.ruoyan.pxnavigator.R;
 
 /**
- * Created by Miroslaw Stanek on 19.01.15.
+ * Modified by Ruoyan Liu on 07.12.15.
+ *
+ * Base activity is to initialize the common elements in all activities.
  */
 public class BaseActivity extends AppCompatActivity {
 
@@ -60,6 +62,7 @@ public class BaseActivity extends AppCompatActivity {
         return toolbar;
     }
 
+    //this function and the below one is to return the UI elements in toolbar for animation use
     public MenuItem getInboxMenuItem() {
         return inboxMenuItem;
     }
