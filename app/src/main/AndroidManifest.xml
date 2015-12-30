@@ -37,6 +37,9 @@
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCxDhLeihqkTZqhmBm_v1gigZRtZH4haHQ" />
+        <meta-data
+            android:name="io.ruoyan.pxnavigator.MyGlideModule"
+            android:value="GlideModule" />
     </application>
 
 </manifest>

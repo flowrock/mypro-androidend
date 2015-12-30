@@ -11,16 +11,14 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.squareup.picasso.Callback;
-import com.squareup.picasso.Picasso;
+import com.bumptech.glide.Glide;
 
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
-import io.ruoyan.pxnavigator.Utils;
+import io.ruoyan.pxnavigator.utils.BasicUtils;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -30,7 +28,6 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private static final int PHOTO_ANIMATION_DELAY = 600;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
 
-
     private final Context mContext;
     private final int mCellSize;
 
@@ -39,10 +36,10 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private boolean mLockedAnimations = false;
     private int mLastAnimatedItem = -1;
 
-    public GridPhotosAdapter(Context context) {
+    public GridPhotosAdapter(Context context, int photoPerRow, List<String> imagelUrls) {
         mContext = context;
-        mCellSize = Utils.getScreenWidth(context) / 3;
-        mPhotos = Arrays.asList(context.getResources().getStringArray(R.array.user_photos));
+        mCellSize = BasicUtils.getScreenWidth(context) / photoPerRow;
+        mPhotos = imagelUrls;
     }
 
     @Override
@@ -61,22 +58,13 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         bindPhoto((PhotoViewHolder) holder, position);
     }
 
-    private void bindPhoto(final PhotoViewHolder holder, int position) {
-        Picasso.with(mContext)
+    private void bindPhoto(final PhotoViewHolder holder, final int position) {
+        Glide.with(mContext)
                 .load(mPhotos.get(position))
-                .resize(mCellSize, mCellSize)
+                .override(mCellSize, mCellSize)
                 .centerCrop()
-                .into(holder.ivPhoto, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        animatePhoto(holder);
-                    }
-
-                    @Override
-                    public void onError() {
-
-                    }
-                });
+                .into(holder.ivPhoto);
+        animatePhoto(holder);
         if (mLastAnimatedItem < position) mLastAnimatedItem = position;
     }
 

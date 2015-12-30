@@ -8,13 +8,13 @@ import android.widget.LinearLayout;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import io.ruoyan.pxnavigator.R;
-import io.ruoyan.pxnavigator.Utils;
+import io.ruoyan.pxnavigator.utils.BasicUtils;
 
 /**
  * Created by froger_mcs on 15.12.14.
  */
 public class FeedContextMenu extends LinearLayout {
-    private static final int CONTEXT_MENU_WIDTH = Utils.dpToPx(240);
+    private static final int CONTEXT_MENU_WIDTH = BasicUtils.dpToPx(240);
 
     private int feedItem = -1;
 
