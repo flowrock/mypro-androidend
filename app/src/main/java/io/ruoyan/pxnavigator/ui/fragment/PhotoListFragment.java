@@ -1,6 +1,7 @@
 package io.ruoyan.pxnavigator.ui.fragment;
 
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.RecyclerView;
@@ -21,7 +22,8 @@ import io.ruoyan.pxnavigator.data.ApiService;
 import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
 import io.ruoyan.pxnavigator.ui.adapter.GridPhotosAdapter;
-import io.ruoyan.pxnavigator.utils.PhotoInfoCacheUtils;
+import io.ruoyan.pxnavigator.ui.map.MapManager;
+import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
@@ -32,14 +34,16 @@ import retrofit.Retrofit;
  * Created by ruoyan on 12/20/15.
  */
 public class PhotoListFragment extends Fragment {
-    public static final int PHOTO_PER_ROW = 3;
-    public static final String EXTRA_CATEGORY = "extra_category";
-    public static final String BASE_URL = "http://159.203.117.77";
+    private static final int PHOTO_PER_ROW = 3;
+    private static final int PHOTO_PER_CATEGORY = 100;
+    private static final String EXTRA_CATEGORY = "extra_category";
+    private static final String BASE_URL = "http://159.203.117.77";
 
     @InjectView(R.id.popPhotoRecyclerView)
     RecyclerView mPopPhotoRecyclerView;
 
     private GridPhotosAdapter mGridPhotosAdapter;
+    private StaggeredGridLayoutManager mLayoutManager;
     private Category mCategory;
     private List<Photo> mPhotos;
 
@@ -64,7 +68,7 @@ public class PhotoListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_photo_list, container,
                 false);
         ButterKnife.inject(this, view);
-        if (PhotoInfoCacheUtils.getPhotoInfo(mCategory) != null)
+        if (PhotoCacheUtils.getPhotoInfo(mCategory) != null)
             setupPopPhotosGrid();
         return view;
     }
@@ -77,7 +81,7 @@ public class PhotoListFragment extends Fragment {
     }
 
     private void loadPhotoInfo() {
-        mPhotos = PhotoInfoCacheUtils.getPhotoInfo(mCategory);
+        mPhotos = PhotoCacheUtils.getPhotoInfo(mCategory);
         if (mPhotos == null) {
             requestPhotos("1", mCategory.name());
         }
@@ -95,7 +99,7 @@ public class PhotoListFragment extends Fragment {
         ApiService service = retrofit.create(ApiService.class);
 
         HashMap<String, String> queryParameters = new HashMap<>();
-        queryParameters.put("day",day);
+        queryParameters.put("day", day);
         queryParameters.put("category", category);
 
         final Category cat = Category.valueOf(category);
@@ -108,15 +112,15 @@ public class PhotoListFragment extends Fragment {
                 } catch (Exception e) {
                     mPhotos = null;
                 }
-                PhotoInfoCacheUtils.setPhotoInfo(cat, mPhotos);
+                PhotoCacheUtils.setPhotoInfo(cat, mPhotos);
                 progressbar.setVisibility(View.GONE);
                 setupPopPhotosGrid();
+                int[] visiblePhotoPositions = {0, 2*PHOTO_PER_ROW-1};
+                updateMap(visiblePhotoPositions, 1000);
             }
 
             @Override
-            public void onFailure(Throwable t) {
-
-            }
+            public void onFailure(Throwable t) {}
         });
     }
 
@@ -124,25 +128,39 @@ public class PhotoListFragment extends Fragment {
         mPopPhotoRecyclerView.setVisibility(View.VISIBLE);
         List<String> imageUrls = getImageUrlList();
         if (imageUrls == null)
-            mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, Arrays.asList
+            mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, mCategory,
+                    Arrays.asList
                     (getActivity()
                     .getResources().getStringArray(R.array.user_photos)));
         else
-            mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, imageUrls);
+            mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, mCategory,
+                    imageUrls);
         mPopPhotoRecyclerView.setAdapter(mGridPhotosAdapter);
-        final StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(PHOTO_PER_ROW,
+        mLayoutManager = new StaggeredGridLayoutManager(PHOTO_PER_ROW,
                 StaggeredGridLayoutManager.VERTICAL);
-        mPopPhotoRecyclerView.setLayoutManager(layoutManager);
+        mPopPhotoRecyclerView.setLayoutManager(mLayoutManager);
         mPopPhotoRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 mGridPhotosAdapter.setLockedAnimations(true);
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    List<Integer> visiblePhotoPositions = getVisiblePhotoPositions(layoutManager);
+                    final int[] visiblePhotoPositions = getVisiblePhotoPositions();
+                    updateMap(visiblePhotoPositions, 200);
                 }
             }
 
         });
+    }
+
+    private void updateMap(final int[] visiblePhotoPositions, final int delay) {
+        final MapManager manager = MapManager.getMapManager(getActivity());
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                manager.generateCluster(mCategory, visiblePhotoPositions);
+            }
+        }, delay);
     }
 
     private List<String> getImageUrlList() {
@@ -154,15 +172,13 @@ public class PhotoListFragment extends Fragment {
         return urlList;
     }
 
-    private List<Integer> getVisiblePhotoPositions(StaggeredGridLayoutManager layoutManager) {
+    private int[] getVisiblePhotoPositions() {
         int[] firstVisiblePhotos = new int[PHOTO_PER_ROW];
-        layoutManager.findFirstCompletelyVisibleItemPositions(firstVisiblePhotos);
-        int[] lastVisiblePhotos = new int[PHOTO_PER_ROW];
-        layoutManager.findLastCompletelyVisibleItemPositions(lastVisiblePhotos);
-        List<Integer> result = new ArrayList<>();
-        result.add(firstVisiblePhotos[0]);
-        result.add(lastVisiblePhotos[PHOTO_PER_ROW-1] > lastVisiblePhotos[0] ?
-                lastVisiblePhotos[PHOTO_PER_ROW-1] : lastVisiblePhotos[0]);
+        mLayoutManager.findFirstCompletelyVisibleItemPositions(firstVisiblePhotos);
+        int[] result = new int[2];
+        result[0] = firstVisiblePhotos[0];
+        result[1] = result[0]==PHOTO_PER_CATEGORY-PHOTO_PER_ROW-PHOTO_PER_CATEGORY%PHOTO_PER_ROW
+                ?PHOTO_PER_CATEGORY-1:result[0]+PHOTO_PER_ROW-1;
         return result;
     }
 

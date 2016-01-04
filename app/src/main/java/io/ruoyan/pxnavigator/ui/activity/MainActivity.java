@@ -41,6 +41,7 @@ public class MainActivity extends BaseDrawerActivity {
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         mPhotoViewPager.setAdapter(new PagerAdapter(fragmentManager));
+        mPhotoViewPager.setOffscreenPageLimit(3);
         TabLayout.OnTabSelectedListener tabListener = new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {

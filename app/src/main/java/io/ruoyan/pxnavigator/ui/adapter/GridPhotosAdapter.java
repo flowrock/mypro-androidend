@@ -12,13 +12,18 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
+import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
+import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -30,15 +35,18 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private final Context mContext;
     private final int mCellSize;
+    private final Category mCategory;
 
     private final List<String> mPhotos;
 
     private boolean mLockedAnimations = false;
     private int mLastAnimatedItem = -1;
 
-    public GridPhotosAdapter(Context context, int photoPerRow, List<String> imagelUrls) {
+    public GridPhotosAdapter(Context context, int photoPerRow, Category category, List<String>
+            imagelUrls) {
         mContext = context;
         mCellSize = BasicUtils.getScreenWidth(context) / photoPerRow;
+        mCategory = category;
         mPhotos = imagelUrls;
     }
 
@@ -61,6 +69,18 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private void bindPhoto(final PhotoViewHolder holder, final int position) {
         Glide.with(mContext)
                 .load(mPhotos.get(position))
+                .listener(new RequestListener<String, GlideDrawable>() {
+                    @Override
+                    public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                        PhotoCacheUtils.addDrawablePhoto(mCategory, position, resource);
+                        return false;
+                    }
+                })
                 .override(mCellSize, mCellSize)
                 .centerCrop()
                 .into(holder.ivPhoto);
