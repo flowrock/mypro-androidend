@@ -23,6 +23,7 @@ import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
 import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
+import io.ruoyan.pxnavigator.utils.DayUtils;
 import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
 
 /**
@@ -37,7 +38,7 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
     private final int mCellSize;
     private final Category mCategory;
 
-    private final List<String> mPhotos;
+    private List<String> mPhotos;
 
     private boolean mLockedAnimations = false;
     private int mLastAnimatedItem = -1;
@@ -66,7 +67,12 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         bindPhoto((PhotoViewHolder) holder, position);
     }
 
-    private void bindPhoto(final PhotoViewHolder holder, final int position) {
+    public void resetListData(List<String> imageUrls) {
+        notifyItemRangeRemoved(0, getItemCount());
+        mPhotos = imageUrls;
+    }
+
+    private void bindPhoto(PhotoViewHolder holder, final int position) {
         Glide.with(mContext)
                 .load(mPhotos.get(position))
                 .listener(new RequestListener<String, GlideDrawable>() {
@@ -77,7 +83,8 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
                     @Override
                     public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                        PhotoCacheUtils.addDrawablePhoto(mCategory, position, resource);
+                        PhotoCacheUtils.addDrawablePhoto(mCategory, DayUtils.getDay(), position,
+                                resource);
                         return false;
                     }
                 })
@@ -90,11 +97,11 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private void animatePhoto(PhotoViewHolder viewHolder) {
         if (!mLockedAnimations) {
-            if (mLastAnimatedItem == viewHolder.getPosition()) {
+            if (mLastAnimatedItem == viewHolder.getLayoutPosition()) {
                 setLockedAnimations(true);
             }
 
-            long animationDelay = PHOTO_ANIMATION_DELAY + viewHolder.getPosition() * 30;
+            long animationDelay = PHOTO_ANIMATION_DELAY + viewHolder.getLayoutPosition() * 30;
 
             viewHolder.flRoot.setScaleY(0);
             viewHolder.flRoot.setScaleX(0);

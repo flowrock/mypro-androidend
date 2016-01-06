@@ -26,7 +26,7 @@ public class BaseActivity extends AppCompatActivity {
     @InjectView(R.id.ivLogo)
     ImageView ivLogo;
 
-    private MenuItem inboxMenuItem;
+    private MenuItem dayMenuItem;
 
     @Override
     public void setContentView(int layoutResID) {
@@ -53,8 +53,7 @@ public class BaseActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
-        inboxMenuItem = menu.findItem(R.id.action_inbox);
-        inboxMenuItem.setActionView(R.layout.menu_item_view);
+        dayMenuItem = menu.findItem(R.id.action_day_selection);
         return true;
     }
 
@@ -63,8 +62,8 @@ public class BaseActivity extends AppCompatActivity {
     }
 
     //this function and the below one is to return the UI elements in toolbar for animation use
-    public MenuItem getInboxMenuItem() {
-        return inboxMenuItem;
+    public MenuItem getDayMenuItem() {
+        return dayMenuItem;
     }
 
     public ImageView getIvLogo() {

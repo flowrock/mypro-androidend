@@ -13,27 +13,30 @@ import io.ruoyan.pxnavigator.model.Photo;
  * Created by ruoyan on 12/27/15.
  */
 public class PhotoCacheUtils {
-    private static Map<Category, List<Photo>> photoInfoCache = new HashMap<>();
-    private static Map<Category, Map<Integer,Drawable>> drawablePhotoCache = new HashMap<>();
+    private static Map<String, List<Photo>> photoInfoCache = new HashMap<>();
+    private static Map<String, Map<Integer,Drawable>> drawablePhotoCache = new HashMap<>();
 
-    public static List<Photo> getPhotoInfo(Category category) {
-        return photoInfoCache.containsKey(category)?photoInfoCache.get(category):null;
+    public static List<Photo> getPhotoInfo(Category category, String day) {
+        return photoInfoCache.containsKey(getKey(category,day)) ? photoInfoCache.get(getKey
+                (category,day)):null;
     }
 
-    public static void setPhotoInfo(Category category, List<Photo> photos) {
-        photoInfoCache.put(category, photos);
+    public static void setPhotoInfo(Category category, String day, List<Photo> photos) {
+        photoInfoCache.put(getKey(category,day), photos);
     }
 
-    public static Drawable getDrawablePhoto(Category category, int position) {
-        return drawablePhotoCache.containsKey(category)?drawablePhotoCache.get(category).get
+    public static Drawable getDrawablePhoto(Category category, String day, int position) {
+        return drawablePhotoCache.containsKey(getKey(category,day)) ? drawablePhotoCache.get
+                (getKey(category,day)).get
                 (position):null;
     }
 
-    public static void addDrawablePhoto(Category category, int position, Drawable drawable) {
-        if (!drawablePhotoCache.containsKey(category))
-            drawablePhotoCache.put(category, new HashMap<Integer,Drawable>());
+    public static void addDrawablePhoto(Category category, String day, int position, Drawable
+            drawable) {
+        if (!drawablePhotoCache.containsKey(getKey(category,day)))
+            drawablePhotoCache.put(getKey(category,day), new HashMap<Integer,Drawable>());
 
-        Map<Integer,Drawable> drawableMap = drawablePhotoCache.get(category);
+        Map<Integer,Drawable> drawableMap = drawablePhotoCache.get(getKey(category,day));
         drawableMap.put(position, drawable);
     }
 
@@ -41,4 +44,9 @@ public class PhotoCacheUtils {
         photoInfoCache.clear();
         drawablePhotoCache.clear();
     }
+
+    private static String getKey(Category category, String day) {
+        return category.name()+day;
+    }
+
 }

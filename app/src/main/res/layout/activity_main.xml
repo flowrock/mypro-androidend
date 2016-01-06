@@ -33,7 +33,7 @@
                 android:background="?attr/colorAccent"
                 app:tabGravity="fill"
                 app:tabIndicatorColor="@color/tab_indicator"
-                app:tabIndicatorHeight="4dp"
+                app:tabIndicatorHeight="6dp"
                 app:tabMode="fixed"
                 android:fillViewport="false"/>
 

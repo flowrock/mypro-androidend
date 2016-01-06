@@ -23,7 +23,10 @@ import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
 import io.ruoyan.pxnavigator.ui.adapter.GridPhotosAdapter;
 import io.ruoyan.pxnavigator.ui.map.MapManager;
+import io.ruoyan.pxnavigator.utils.DayUtils;
+import io.ruoyan.pxnavigator.utils.MapUtils;
 import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
+import jp.wasabeef.recyclerview.animators.SlideInDownAnimator;
 import retrofit.Call;
 import retrofit.Callback;
 import retrofit.GsonConverterFactory;
@@ -36,6 +39,8 @@ import retrofit.Retrofit;
 public class PhotoListFragment extends Fragment {
     private static final int PHOTO_PER_ROW = 3;
     private static final int PHOTO_PER_CATEGORY = 100;
+    private static final int MAP_UPDATE_INTERVAL = 100;
+    private static final int MAP_INITIAL_DELAY = 1000;
     private static final String EXTRA_CATEGORY = "extra_category";
     private static final String BASE_URL = "http://159.203.117.77";
 
@@ -68,7 +73,8 @@ public class PhotoListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_photo_list, container,
                 false);
         ButterKnife.inject(this, view);
-        if (PhotoCacheUtils.getPhotoInfo(mCategory) != null)
+        if (PhotoCacheUtils.getPhotoInfo(mCategory, DayUtils.getDay()) != null) //make sure view
+        // pager preloading won't create any adapter for the recyclerview
             setupPopPhotosGrid();
         return view;
     }
@@ -76,19 +82,27 @@ public class PhotoListFragment extends Fragment {
     @Override
     public void setUserVisibleHint(boolean isVisibleToUser) {
         super.setUserVisibleHint(isVisibleToUser);
-        if (isVisibleToUser)
+        if (isVisibleToUser) {
             loadPhotoInfo();
+        }
     }
 
     private void loadPhotoInfo() {
-        mPhotos = PhotoCacheUtils.getPhotoInfo(mCategory);
-        if (mPhotos == null) {
-            requestPhotos("1", mCategory.name());
+        mPhotos = PhotoCacheUtils.getPhotoInfo(mCategory, DayUtils.getDay());
+        if (mPhotos == null) { //first time to request data
+            requestPhotos(mCategory.name(), DayUtils.getDay());
         }
 
+        else { //data already exists, check if the photos shown are desired, if not, need refresh
+            if (DayUtils.needRefresh(mCategory)) {
+                mGridPhotosAdapter.resetListData(getImageUrlList());
+            }
+            updateMap(getVisiblePhotoPositions());
+        }
+        DayUtils.setRefreshMap(mCategory);
     }
 
-    private void requestPhotos(String day, String category) {
+    private void requestPhotos(String category, String day) {
         final View progressbar = getActivity().findViewById(R.id.progressbar);
         progressbar.setVisibility(View.VISIBLE);
 
@@ -112,15 +126,15 @@ public class PhotoListFragment extends Fragment {
                 } catch (Exception e) {
                     mPhotos = null;
                 }
-                PhotoCacheUtils.setPhotoInfo(cat, mPhotos);
+                PhotoCacheUtils.setPhotoInfo(cat, DayUtils.getDay(), mPhotos);
                 progressbar.setVisibility(View.GONE);
                 setupPopPhotosGrid();
-                int[] visiblePhotoPositions = {0, 2*PHOTO_PER_ROW-1};
-                updateMap(visiblePhotoPositions, 1000);
+                updateMap(getVisiblePhotoPositions());
             }
 
             @Override
-            public void onFailure(Throwable t) {}
+            public void onFailure(Throwable t) {
+            }
         });
     }
 
@@ -136,6 +150,9 @@ public class PhotoListFragment extends Fragment {
             mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, mCategory,
                     imageUrls);
         mPopPhotoRecyclerView.setAdapter(mGridPhotosAdapter);
+        mPopPhotoRecyclerView.setItemAnimator(new SlideInDownAnimator());//set recyclerview animator
+        mPopPhotoRecyclerView.getItemAnimator().setRemoveDuration(200);
+
         mLayoutManager = new StaggeredGridLayoutManager(PHOTO_PER_ROW,
                 StaggeredGridLayoutManager.VERTICAL);
         mPopPhotoRecyclerView.setLayoutManager(mLayoutManager);
@@ -144,21 +161,29 @@ public class PhotoListFragment extends Fragment {
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 mGridPhotosAdapter.setLockedAnimations(true);
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                    final int[] visiblePhotoPositions = getVisiblePhotoPositions();
-                    updateMap(visiblePhotoPositions, 200);
+                    updateMap(getVisiblePhotoPositions());
                 }
             }
 
         });
     }
 
-    private void updateMap(final int[] visiblePhotoPositions, final int delay) {
+    private void updateMap(final int[] visiblePhotoPositions) {
         final MapManager manager = MapManager.getMapManager(getActivity());
         Handler handler = new Handler();
+        boolean initialized = MapUtils.getAppStatus();
+        int delay = MAP_UPDATE_INTERVAL;
+        if (!initialized) {
+            delay = MAP_INITIAL_DELAY;
+            MapUtils.setAppStatus(true);
+        }
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                manager.generateCluster(mCategory, visiblePhotoPositions);
+                if (visiblePhotoPositions[0] != -1)
+                    manager.generateCluster(mCategory, visiblePhotoPositions);
+                else //try again
+                    updateMap(getVisiblePhotoPositions());
             }
         }, delay);
     }
@@ -174,7 +199,13 @@ public class PhotoListFragment extends Fragment {
 
     private int[] getVisiblePhotoPositions() {
         int[] firstVisiblePhotos = new int[PHOTO_PER_ROW];
-        mLayoutManager.findFirstCompletelyVisibleItemPositions(firstVisiblePhotos);
+        try {
+            //it may happen when the method below gets null pointer exception
+            mLayoutManager.findFirstCompletelyVisibleItemPositions(firstVisiblePhotos);
+        } catch (Exception e) {
+            Arrays.fill(firstVisiblePhotos,0);
+            mPopPhotoRecyclerView.smoothScrollToPosition(0);
+        }
         int[] result = new int[2];
         result[0] = firstVisiblePhotos[0];
         result[1] = result[0]==PHOTO_PER_CATEGORY-PHOTO_PER_ROW-PHOTO_PER_CATEGORY%PHOTO_PER_ROW

@@ -12,6 +12,7 @@ import java.util.List;
 import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.MapItem;
 import io.ruoyan.pxnavigator.model.Photo;
+import io.ruoyan.pxnavigator.utils.DayUtils;
 import io.ruoyan.pxnavigator.utils.MapUtils;
 import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
 
@@ -41,13 +42,14 @@ public class MapManager {
     public void generateCluster(Category category, int[] visiblePositions) {
         mClusterManager.clearItems();
         double meanLat=0, meanLong=0;
-        List<Photo> list = PhotoCacheUtils.getPhotoInfo(category);
+        List<Photo> list = PhotoCacheUtils.getPhotoInfo(category, DayUtils.getDay());
         for (int i=visiblePositions[0]; i<=visiblePositions[1]; i++) {
             Photo photo = list.get(i);
             LatLng lng = new LatLng(photo.getLatitude(), photo.getLongitude());
             meanLat += photo.getLatitude();
             meanLong += photo.getLongitude();
-            MapItem mapItem = new MapItem(lng, PhotoCacheUtils.getDrawablePhoto(category, i));
+            MapItem mapItem = new MapItem(lng, PhotoCacheUtils.getDrawablePhoto(category,
+                    DayUtils.getDay(), i));
             mClusterManager.addItem(mapItem);
         }
         meanLat /= visiblePositions[1]-visiblePositions[0]+1;

@@ -3,6 +3,7 @@ package io.ruoyan.pxnavigator.ui.adapter;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,9 +28,8 @@ public class PagerAdapter extends FragmentPagerAdapter {
         Category category = Category.values()[position];
         if (mfragmentCache.containsKey(category))
             return mfragmentCache.get(category);
-
         PhotoListFragment pfragment = PhotoListFragment.newInstance(category);
-        mfragmentCache.put(category,pfragment);
+        mfragmentCache.put(category, pfragment);
         return pfragment;
     }
 

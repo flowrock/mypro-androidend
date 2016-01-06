@@ -7,6 +7,7 @@ import com.google.android.gms.maps.GoogleMap;
  */
 public class MapUtils {
     private static GoogleMap sGoogleMap;
+    private static boolean sAppInitialized = false;
 
     public static GoogleMap getGoogleMap() {
         return sGoogleMap;
@@ -15,4 +16,13 @@ public class MapUtils {
     public static void setupGoogleMap(GoogleMap googleMap) {
         sGoogleMap = googleMap;
     }
+
+    public static boolean getAppStatus() {
+        return sAppInitialized;
+    }
+
+    public static void setAppStatus(boolean flag) {
+        sAppInitialized = flag;
+    }
+
 }

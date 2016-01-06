@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".MainActivity">
     <item
-        android:id="@+id/action_inbox"
-        android:icon="@drawable/ic_inbox_white"
-        android:title="Inbox"
+        android:id="@+id/action_day_selection"
+        android:icon="@drawable/ic_toolbar_today"
+        android:title="Day Selection"
         app:showAsAction="always" />
 </menu>
