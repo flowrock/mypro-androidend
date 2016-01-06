@@ -21,7 +21,7 @@ import io.ruoyan.pxnavigator.utils.DayUtils;
 import io.ruoyan.pxnavigator.utils.MapUtils;
 
 /**
- * Created by Ruoyan on 20.12.15.
+ * Created by ruoyan on 12/20/15.
  */
 public class MainActivity extends BaseDrawerActivity {
 

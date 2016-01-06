@@ -26,8 +26,10 @@ public class MapManager {
 
     public MapManager(Context context) {
         mGoogleMap = MapUtils.getGoogleMap();
-        mClusterManager = new ClusterManager<>(context,mGoogleMap);
-        mClusterManager.setRenderer(new MapRenderer(context, mGoogleMap, mClusterManager));
+        mClusterManager = new ClusterManager<MapItem>(context,mGoogleMap);
+        MapRenderer mapRenderer = new MapRenderer(context, mGoogleMap, mClusterManager);
+        mClusterManager.setRenderer(mapRenderer);
+        mClusterManager.setOnClusterItemClickListener(mapRenderer);
         mGoogleMap.setOnCameraChangeListener(mClusterManager);
         mGoogleMap.setOnMarkerClickListener(mClusterManager);
         mGoogleMap.setOnInfoWindowClickListener(mClusterManager);

@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -26,7 +27,8 @@ import io.ruoyan.pxnavigator.ui.view.MultiDrawable;
 /**
  * Created by ruoyan on 1/2/16.
  */
-public class MapRenderer extends DefaultClusterRenderer<MapItem> {
+public class MapRenderer extends DefaultClusterRenderer<MapItem> implements ClusterManager
+        .OnClusterItemClickListener<MapItem>{
     private Context mContext;
     private GoogleMap mGoogleMap;
     private final IconGenerator mIconGenerator;
@@ -88,4 +90,10 @@ public class MapRenderer extends DefaultClusterRenderer<MapItem> {
         return cluster.getSize() > 6;
     }
 
+    @Override
+    public boolean onClusterItemClick(MapItem mapItem) {
+        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(mapItem.getPosition(),
+                mapItem.getNextZoomLevel()));
+        return false;
+    }
 }
