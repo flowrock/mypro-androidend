@@ -3,13 +3,15 @@ package io.ruoyan.pxnavigator.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by ruoyan on 12/25/15.
  */
-public class Photo {
+public class Photo implements Serializable{
+    private static final long serialVersionUID = 1L;
     @SerializedName("username")
     @Expose
     private String username;

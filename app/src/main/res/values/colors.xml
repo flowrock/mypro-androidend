@@ -3,7 +3,6 @@
 <resources>
     <color name="style_color_primary">#2d5d82</color>
     <color name="style_color_primary_dark">#21425d</color>
-    <!--<color name="style_color_accent">#01bcd5</color>-->
     <color name="style_color_accent">#00BCD4</color>
 
     <color name="fab_color_pressed">#007787</color>
@@ -21,6 +20,8 @@
     <color name="btn_context_menu_text_red">#ffff0000</color>
 
     <color name="text_like_counter">#2b5a83</color>
-
+    <color name="drawer_header_text">#ffffff</color>
     <color name="bg_comments">#ffffff</color>
+
+    <color name="photo_gallery_background">#000000</color>
 </resources>

@@ -1,6 +1,7 @@
 package io.ruoyan.pxnavigator.ui.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
@@ -16,12 +17,16 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
 import io.ruoyan.pxnavigator.model.Category;
+import io.ruoyan.pxnavigator.model.Photo;
+import io.ruoyan.pxnavigator.model.PhotoWrapper;
+import io.ruoyan.pxnavigator.ui.activity.PhotoGalleryActivity;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
 import io.ruoyan.pxnavigator.utils.DayUtils;
 import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
@@ -33,22 +38,24 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private static final int PHOTO_ANIMATION_DELAY = 600;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
+    private static final String INTENT_EXTRA_PHOTO_POSITION = "PHOTO_POSITION";
+    private static final String INTENT_EXTRA_PHOTO_LIST = "PHOTO_LIST";
 
-    private final Context mContext;
+    private static Context mContext;
     private final int mCellSize;
     private final Category mCategory;
 
-    private List<String> mPhotos;
+    private static List<Photo> mPhotos;
 
     private boolean mLockedAnimations = false;
     private int mLastAnimatedItem = -1;
 
-    public GridPhotosAdapter(Context context, int photoPerRow, Category category, List<String>
-            imagelUrls) {
+    public GridPhotosAdapter(Context context, int photoPerRow, Category category, List<Photo>
+            photos) {
         mContext = context;
         mCellSize = BasicUtils.getScreenWidth(context) / photoPerRow;
         mCategory = category;
-        mPhotos = imagelUrls;
+        mPhotos = photos;
     }
 
     @Override
@@ -67,14 +74,14 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         bindPhoto((PhotoViewHolder) holder, position);
     }
 
-    public void resetListData(List<String> imageUrls) {
+    public void resetListData(List<Photo> photos) {
         notifyItemRangeRemoved(0, getItemCount());
-        mPhotos = imageUrls;
+        mPhotos = photos;
     }
 
     private void bindPhoto(PhotoViewHolder holder, final int position) {
         Glide.with(mContext)
-                .load(mPhotos.get(position))
+                .load(mPhotos.get(position).getImageUrl())
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
                     public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
@@ -121,7 +128,7 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         return mPhotos.size();
     }
 
-    static class PhotoViewHolder extends RecyclerView.ViewHolder {
+    static class PhotoViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         @InjectView(R.id.flRoot)
         FrameLayout flRoot;
         @InjectView(R.id.ivPhoto)
@@ -130,6 +137,16 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         public PhotoViewHolder(View view) {
             super(view);
             ButterKnife.inject(this, view);
+            view.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View view) {
+            Intent intent = new Intent(mContext, PhotoGalleryActivity.class);
+            intent.putExtra(INTENT_EXTRA_PHOTO_POSITION, getLayoutPosition());
+            PhotoWrapper wrapper = new PhotoWrapper((ArrayList)mPhotos);
+            intent.putExtra(INTENT_EXTRA_PHOTO_LIST, wrapper);
+            mContext.startActivity(intent);
         }
     }
 

@@ -9,8 +9,8 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -95,7 +95,7 @@ public class PhotoListFragment extends Fragment {
 
         else { //data already exists, check if the photos shown are desired, if not, need refresh
             if (DayUtils.needRefresh(mCategory)) {
-                mGridPhotosAdapter.resetListData(getImageUrlList());
+                mGridPhotosAdapter.resetListData(mPhotos);
             }
             updateMap(getVisiblePhotoPositions());
         }
@@ -140,15 +140,11 @@ public class PhotoListFragment extends Fragment {
 
     private void setupPopPhotosGrid() {
         mPopPhotoRecyclerView.setVisibility(View.VISIBLE);
-        List<String> imageUrls = getImageUrlList();
-        if (imageUrls == null)
-            mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, mCategory,
-                    Arrays.asList
-                    (getActivity()
-                    .getResources().getStringArray(R.array.user_photos)));
+        if (mPhotos == null)
+            Toast.makeText(getActivity(), R.string.request_failed_alert, Toast.LENGTH_SHORT).show();
         else
             mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, mCategory,
-                    imageUrls);
+                    mPhotos);
         mPopPhotoRecyclerView.setAdapter(mGridPhotosAdapter);
         mPopPhotoRecyclerView.setItemAnimator(new SlideInDownAnimator());//set recyclerview animator
         mPopPhotoRecyclerView.getItemAnimator().setRemoveDuration(200);
@@ -170,13 +166,13 @@ public class PhotoListFragment extends Fragment {
 
     private void updateMap(final int[] visiblePhotoPositions) {
         final MapManager manager = MapManager.getMapManager(getActivity());
-        Handler handler = new Handler();
         boolean initialized = MapUtils.getAppStatus();
         int delay = MAP_UPDATE_INTERVAL;
         if (!initialized) {
             delay = MAP_INITIAL_DELAY;
             MapUtils.setAppStatus(true);
         }
+        Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -186,15 +182,6 @@ public class PhotoListFragment extends Fragment {
                     updateMap(getVisiblePhotoPositions());
             }
         }, delay);
-    }
-
-    private List<String> getImageUrlList() {
-        List<String> urlList = new ArrayList<>();
-        if (mPhotos == null)
-            return null;
-        for (Photo photo : mPhotos)
-            urlList.add(photo.getImageUrl());
-        return urlList;
     }
 
     private int[] getVisiblePhotoPositions() {

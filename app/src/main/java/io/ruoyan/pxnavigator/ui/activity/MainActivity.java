@@ -15,7 +15,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 
 import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
-import io.ruoyan.pxnavigator.ui.adapter.PagerAdapter;
+import io.ruoyan.pxnavigator.ui.adapter.FeedPagerAdapter;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
 import io.ruoyan.pxnavigator.utils.DayUtils;
 import io.ruoyan.pxnavigator.utils.MapUtils;
@@ -35,7 +35,7 @@ public class MainActivity extends BaseDrawerActivity {
     ProgressBar mProgressBar;
 
     private int mFeedDay = 0;
-    private PagerAdapter mPagerAdapter;
+    private FeedPagerAdapter mFeedPagerAdapter;
     private boolean mPendingAnimation;
 
     @Override
@@ -53,8 +53,8 @@ public class MainActivity extends BaseDrawerActivity {
         DayUtils.resetRefreshMap();
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        mPagerAdapter = new PagerAdapter(fragmentManager);
-        mPhotoViewPager.setAdapter(mPagerAdapter);
+        mFeedPagerAdapter = new FeedPagerAdapter(fragmentManager);
+        mPhotoViewPager.setAdapter(mFeedPagerAdapter);
         mPhotoViewPager.setOffscreenPageLimit(3);
         TabLayout.OnTabSelectedListener tabSelectedListener = new TabLayout
                 .OnTabSelectedListener() {
@@ -89,7 +89,7 @@ public class MainActivity extends BaseDrawerActivity {
     }
 
     private void initializeMap() {
-        GoogleMap map = ((SupportMapFragment)getSupportFragmentManager().
+        GoogleMap map = ((SupportMapFragment) getSupportFragmentManager().
                 findFragmentById(R.id.mapFragment)).getMap();
         MapUtils.setupGoogleMap(map);
     }
@@ -132,7 +132,7 @@ public class MainActivity extends BaseDrawerActivity {
                         int dayTmp = mFeedDay;
                         mFeedDay = which;
                         if (dayTmp != mFeedDay)
-                            refreshData();
+                            replaceFeed();
                         switch (mFeedDay) {
                             case 0:
                                 getDayMenuItem().setIcon(R.drawable.ic_toolbar_today);
@@ -150,11 +150,11 @@ public class MainActivity extends BaseDrawerActivity {
                 .show();
     }
 
-    private void refreshData() {
+    private void replaceFeed() {
         DayUtils.setDay(mFeedDay); //save the day selected
         DayUtils.resetRefreshMap(); //all pages need refresh
         int currentPosition = mPhotoViewPager.getCurrentItem();
-        mPhotoViewPager.setAdapter(mPagerAdapter); //refresh current page
+        mPhotoViewPager.setAdapter(mFeedPagerAdapter); //refresh current page
         if (currentPosition != 0)
             mPhotoViewPager.setCurrentItem(currentPosition);
         else {
@@ -163,4 +163,9 @@ public class MainActivity extends BaseDrawerActivity {
         }
     }
 
+    @Override
+    protected void refreshFeed() {
+        super.refreshFeed();
+        replaceFeed();
+    }
 }

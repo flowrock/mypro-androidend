@@ -36,7 +36,7 @@ public class MapItem implements ClusterItem {
     public float getNextZoomLevel() {
         if (mZoomLevel==INITIAL_ZOOM_LEVEL+2*ZOOM_INCREMENT || mZoomLevel==INITIAL_ZOOM_LEVEL)
             mZoomFlag *= -1;
-        mZoomLevel += ZOOM_INCREMENT*mZoomFlag;
+        mZoomLevel = mZoomFlag==1 ? mZoomLevel+ZOOM_INCREMENT:INITIAL_ZOOM_LEVEL;
         return mZoomLevel;
     }
 }
