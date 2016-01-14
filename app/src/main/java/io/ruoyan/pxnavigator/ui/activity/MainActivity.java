@@ -17,7 +17,7 @@ import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
 import io.ruoyan.pxnavigator.ui.adapter.FeedPagerAdapter;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
-import io.ruoyan.pxnavigator.utils.DayUtils;
+import io.ruoyan.pxnavigator.utils.DayObservable;
 import io.ruoyan.pxnavigator.utils.MapUtils;
 
 /**
@@ -50,7 +50,6 @@ public class MainActivity extends BaseDrawerActivity {
 
         setupTabs();
         initializeMap();
-        DayUtils.resetRefreshMap();
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         mFeedPagerAdapter = new FeedPagerAdapter(fragmentManager);
@@ -151,15 +150,14 @@ public class MainActivity extends BaseDrawerActivity {
     }
 
     private void replaceFeed() {
-        DayUtils.setDay(mFeedDay); //save the day selected
-        DayUtils.resetRefreshMap(); //all pages need refresh
+        DayObservable.instance().setDay(mFeedDay);
         int currentPosition = mPhotoViewPager.getCurrentItem();
         mPhotoViewPager.setAdapter(mFeedPagerAdapter); //refresh current page
         if (currentPosition != 0)
             mPhotoViewPager.setCurrentItem(currentPosition);
         else {
-            mPhotoViewPager.setCurrentItem(1); //this is a makeup for a bug that setCurrentItem
-            // (0) does not work
+            mPhotoViewPager.setCurrentItem(1); //this is a workaround for the bug that
+            // setCurrentItem(0) does not work
         }
     }
 

@@ -9,13 +9,15 @@ import java.util.List;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
+import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
-import io.ruoyan.pxnavigator.model.PhotoWrapper;
 import io.ruoyan.pxnavigator.ui.adapter.PhotoGalleryPagerAdapter;
+import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
 
 public class PhotoGalleryActivity extends AppCompatActivity {
+    private static final String INTENT_EXTRA_PHOTO_CATEGORY = "PHOTO_CATEGORY";
+    private static final String INTENT_EXTRA_PHOTO_DAY = "PHOTO_DAY";
     private static final String INTENT_EXTRA_PHOTO_POSITION = "PHOTO_POSITION";
-    private static final String INTENT_EXTRA_PHOTO_LIST = "PHOTO_LIST";
 
     @InjectView(R.id.photo_gallery_viewpager)
     ViewPager mViewPager;
@@ -27,9 +29,12 @@ public class PhotoGalleryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_photo_gallery);
         ButterKnife.inject(this);
 
+        Category category = Category.valueOf(getIntent().getStringExtra
+                (INTENT_EXTRA_PHOTO_CATEGORY));
+        String day = getIntent().getStringExtra(INTENT_EXTRA_PHOTO_DAY);
+        List<Photo> photos = PhotoCacheUtils.getPhotoInfo(category, day);
         int position = getIntent().getIntExtra(INTENT_EXTRA_PHOTO_POSITION, 0);
-        PhotoWrapper wrapper = (PhotoWrapper)getIntent().getSerializableExtra(INTENT_EXTRA_PHOTO_LIST);
-        List<Photo> photos = wrapper.getPhotos();
+
         mViewPager.setAdapter(new PhotoGalleryPagerAdapter(PhotoGalleryActivity.this, photos));
         mViewPager.setOffscreenPageLimit(3);
         mViewPager.setCurrentItem(position);

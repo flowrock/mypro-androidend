@@ -4,10 +4,7 @@
     <string name="day_selection_dialog_title">Feed</string>
     <string name="choose_label">Choose</string>
     <string name="request_failed_alert">Oops! The server is down.</string>
-    <plurals name="likes_count">
-        <item quantity="one">%d like</item>
-        <item quantity="other">%d likes</item>
-    </plurals>
+
     <string-array name="day_selection_options">
         <item>Today</item>
         <item>Recent 3 days</item>

@@ -17,7 +17,6 @@ import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.ButterKnife;
@@ -25,10 +24,9 @@ import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
 import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
-import io.ruoyan.pxnavigator.model.PhotoWrapper;
 import io.ruoyan.pxnavigator.ui.activity.PhotoGalleryActivity;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
-import io.ruoyan.pxnavigator.utils.DayUtils;
+import io.ruoyan.pxnavigator.utils.DayObservable;
 import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
 
 /**
@@ -38,29 +36,30 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     private static final int PHOTO_ANIMATION_DELAY = 600;
     private static final Interpolator INTERPOLATOR = new DecelerateInterpolator();
+    private static final String INTENT_EXTRA_PHOTO_CATEGORY = "PHOTO_CATEGORY";
+    private static final String INTENT_EXTRA_PHOTO_DAY = "PHOTO_DAY";
     private static final String INTENT_EXTRA_PHOTO_POSITION = "PHOTO_POSITION";
-    private static final String INTENT_EXTRA_PHOTO_LIST = "PHOTO_LIST";
 
-    private static Context mContext;
+    private static Context sContext;
     private final int mCellSize;
-    private final Category mCategory;
-
-    private static List<Photo> mPhotos;
+    private Category mCategory;
+    private String mDay;
+    private List<Photo> mPhotos;
 
     private boolean mLockedAnimations = false;
     private int mLastAnimatedItem = -1;
 
-    public GridPhotosAdapter(Context context, int photoPerRow, Category category, List<Photo>
-            photos) {
-        mContext = context;
+    public GridPhotosAdapter(Context context, int photoPerRow, Category category, String day) {
+        sContext = context;
         mCellSize = BasicUtils.getScreenWidth(context) / photoPerRow;
         mCategory = category;
-        mPhotos = photos;
+        mDay = day;
+        mPhotos = PhotoCacheUtils.getPhotoInfo(category,day);
     }
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        final View view = LayoutInflater.from(mContext).inflate(R.layout.item_photo, parent, false);
+        final View view = LayoutInflater.from(sContext).inflate(R.layout.item_photo, parent, false);
         StaggeredGridLayoutManager.LayoutParams layoutParams = (StaggeredGridLayoutManager.LayoutParams) view.getLayoutParams();
         layoutParams.height = mCellSize;
         layoutParams.width = mCellSize;
@@ -74,13 +73,10 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         bindPhoto((PhotoViewHolder) holder, position);
     }
 
-    public void resetListData(List<Photo> photos) {
-        notifyItemRangeRemoved(0, getItemCount());
-        mPhotos = photos;
-    }
-
     private void bindPhoto(PhotoViewHolder holder, final int position) {
-        Glide.with(mContext)
+        holder.category = mCategory;
+        holder.day = mDay;
+        Glide.with(sContext)
                 .load(mPhotos.get(position).getImageUrl())
                 .listener(new RequestListener<String, GlideDrawable>() {
                     @Override
@@ -90,7 +86,8 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
                     @Override
                     public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                        PhotoCacheUtils.addDrawablePhoto(mCategory, DayUtils.getDay(), position,
+                        PhotoCacheUtils.addDrawablePhoto(mCategory, DayObservable.instance().getDay(),
+                                position,
                                 resource);
                         return false;
                     }
@@ -134,6 +131,9 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         @InjectView(R.id.ivPhoto)
         ImageView ivPhoto;
 
+        Category category;
+        String day;
+
         public PhotoViewHolder(View view) {
             super(view);
             ButterKnife.inject(this, view);
@@ -142,11 +142,11 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
         @Override
         public void onClick(View view) {
-            Intent intent = new Intent(mContext, PhotoGalleryActivity.class);
+            Intent intent = new Intent(sContext, PhotoGalleryActivity.class);
+            intent.putExtra(INTENT_EXTRA_PHOTO_CATEGORY, category.name());
+            intent.putExtra(INTENT_EXTRA_PHOTO_DAY, day);
             intent.putExtra(INTENT_EXTRA_PHOTO_POSITION, getLayoutPosition());
-            PhotoWrapper wrapper = new PhotoWrapper((ArrayList)mPhotos);
-            intent.putExtra(INTENT_EXTRA_PHOTO_LIST, wrapper);
-            mContext.startActivity(intent);
+            sContext.startActivity(intent);
         }
     }
 
