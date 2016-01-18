@@ -1,4 +1,4 @@
-package io.ruoyan.pxnavigator.utils;
+package io.ruoyan.pxnavigator.helper;
 
 import android.graphics.drawable.Drawable;
 
@@ -12,7 +12,7 @@ import io.ruoyan.pxnavigator.model.Photo;
 /**
  * Created by ruoyan on 12/27/15.
  */
-public class PhotoCacheUtils {
+public class PhotoCacheHelper {
     private static Map<String, List<Photo>> photoInfoCache = new HashMap<>();
     private static Map<String, Map<Integer,Drawable>> drawablePhotoCache = new HashMap<>();
 

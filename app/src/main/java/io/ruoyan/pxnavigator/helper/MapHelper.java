@@ -1,13 +1,13 @@
-package io.ruoyan.pxnavigator.utils;
+package io.ruoyan.pxnavigator.helper;
 
 import com.google.android.gms.maps.GoogleMap;
 
 /**
  * Created by ruoyan on 12/30/15.
  */
-public class MapUtils {
+public class MapHelper {
     private static GoogleMap sGoogleMap;
-    private static boolean sAppInitialized = false;
+
 
     public static GoogleMap getGoogleMap() {
         return sGoogleMap;
@@ -15,14 +15,6 @@ public class MapUtils {
 
     public static void setupGoogleMap(GoogleMap googleMap) {
         sGoogleMap = googleMap;
-    }
-
-    public static boolean getAppStatus() {
-        return sAppInitialized;
-    }
-
-    public static void setAppStatus(boolean flag) {
-        sAppInitialized = flag;
     }
 
 }

@@ -7,7 +7,6 @@ import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ProgressBar;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.maps.GoogleMap;
@@ -17,8 +16,8 @@ import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
 import io.ruoyan.pxnavigator.ui.adapter.FeedPagerAdapter;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
-import io.ruoyan.pxnavigator.utils.DayObservable;
-import io.ruoyan.pxnavigator.utils.MapUtils;
+import io.ruoyan.pxnavigator.helper.DayHelper;
+import io.ruoyan.pxnavigator.helper.MapHelper;
 
 /**
  * Created by ruoyan on 12/20/15.
@@ -31,9 +30,6 @@ public class MainActivity extends BaseDrawerActivity {
     @InjectView(R.id.photoViewPager)
     ViewPager mPhotoViewPager;
 
-    @InjectView(R.id.progressbar)
-    ProgressBar mProgressBar;
-
     private int mFeedDay = 0;
     private FeedPagerAdapter mFeedPagerAdapter;
     private boolean mPendingAnimation;
@@ -42,8 +38,6 @@ public class MainActivity extends BaseDrawerActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        mProgressBar.setVisibility(View.GONE);
 
         if (savedInstanceState == null)
             mPendingAnimation = true;
@@ -90,7 +84,7 @@ public class MainActivity extends BaseDrawerActivity {
     private void initializeMap() {
         GoogleMap map = ((SupportMapFragment) getSupportFragmentManager().
                 findFragmentById(R.id.mapFragment)).getMap();
-        MapUtils.setupGoogleMap(map);
+        MapHelper.setupGoogleMap(map);
     }
 
     @Override
@@ -128,9 +122,9 @@ public class MainActivity extends BaseDrawerActivity {
                 .itemsCallbackSingleChoice(mFeedDay, new MaterialDialog.ListCallbackSingleChoice() {
                     @Override
                     public boolean onSelection(MaterialDialog dialog, View view, int which, CharSequence text) {
-                        int dayTmp = mFeedDay;
+                        int oldDay = mFeedDay;
                         mFeedDay = which;
-                        if (dayTmp != mFeedDay)
+                        if (oldDay != mFeedDay)
                             replaceFeed();
                         switch (mFeedDay) {
                             case 0:
@@ -150,7 +144,7 @@ public class MainActivity extends BaseDrawerActivity {
     }
 
     private void replaceFeed() {
-        DayObservable.instance().setDay(mFeedDay);
+        DayHelper.instance().setDay(mFeedDay);
         int currentPosition = mPhotoViewPager.getCurrentItem();
         mPhotoViewPager.setAdapter(mFeedPagerAdapter); //refresh current page
         if (currentPosition != 0)

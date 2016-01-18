@@ -26,8 +26,8 @@ import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
 import io.ruoyan.pxnavigator.ui.activity.PhotoGalleryActivity;
 import io.ruoyan.pxnavigator.utils.BasicUtils;
-import io.ruoyan.pxnavigator.utils.DayObservable;
-import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
+import io.ruoyan.pxnavigator.helper.DayHelper;
+import io.ruoyan.pxnavigator.helper.PhotoCacheHelper;
 
 /**
  * Created by Miroslaw Stanek on 20.01.15.
@@ -54,7 +54,7 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         mCellSize = BasicUtils.getScreenWidth(context) / photoPerRow;
         mCategory = category;
         mDay = day;
-        mPhotos = PhotoCacheUtils.getPhotoInfo(category,day);
+        mPhotos = PhotoCacheHelper.getPhotoInfo(category, day);
     }
 
     @Override
@@ -86,7 +86,7 @@ public class GridPhotosAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
                     @Override
                     public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                        PhotoCacheUtils.addDrawablePhoto(mCategory, DayObservable.instance().getDay(),
+                        PhotoCacheHelper.addDrawablePhoto(mCategory, DayHelper.instance().getDay(),
                                 position,
                                 resource);
                         return false;

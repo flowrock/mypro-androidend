@@ -1,4 +1,4 @@
-package io.ruoyan.pxnavigator.data;
+package io.ruoyan.pxnavigator.network;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,7 +11,7 @@ import retrofit.http.QueryMap;
 /**
  * Created by ruoyan on 12/27/15.
  */
-public interface ApiService {
+public interface PopPhotoApiService {
     @GET("/api/photos")
     Call<List<Photo>> requestPhotos(@QueryMap HashMap<String, String> params);
 }

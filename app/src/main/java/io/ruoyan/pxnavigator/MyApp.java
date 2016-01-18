@@ -9,6 +9,7 @@ import android.content.Context;
 public class MyApp extends Application {
 
     private static Context sContext;
+    private static boolean sAppInitialized = false;
 
     @Override
     public void onCreate() {
@@ -18,6 +19,13 @@ public class MyApp extends Application {
 
     public static Context getContext() {
         return sContext;
+    }
+    public static boolean getAppStatus() {
+        return sAppInitialized;
+    }
+
+    public static void setAppStatus(boolean flag) {
+        sAppInitialized = flag;
     }
 
 }

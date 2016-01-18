@@ -5,6 +5,8 @@
     <string name="choose_label">Choose</string>
     <string name="request_failed_alert">Oops! The server is down.</string>
 
+    <string name="my_backend_base_url">http://159.203.117.77</string>
+
     <string-array name="day_selection_options">
         <item>Today</item>
         <item>Recent 3 days</item>

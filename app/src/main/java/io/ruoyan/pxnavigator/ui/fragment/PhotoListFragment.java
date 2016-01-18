@@ -17,36 +17,35 @@ import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import io.ruoyan.pxnavigator.MyApp;
 import io.ruoyan.pxnavigator.R;
-import io.ruoyan.pxnavigator.data.ApiService;
 import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
+import io.ruoyan.pxnavigator.network.PopPhotoApiService;
+import io.ruoyan.pxnavigator.network.PopPhotoRequest;
+import io.ruoyan.pxnavigator.network.Request;
 import io.ruoyan.pxnavigator.observe.Observer;
 import io.ruoyan.pxnavigator.observe.Subject;
 import io.ruoyan.pxnavigator.ui.adapter.GridPhotosAdapter;
 import io.ruoyan.pxnavigator.ui.map.MapManager;
-import io.ruoyan.pxnavigator.utils.DayObservable;
-import io.ruoyan.pxnavigator.utils.MapUtils;
-import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
-import retrofit.Call;
-import retrofit.Callback;
-import retrofit.GsonConverterFactory;
-import retrofit.Response;
-import retrofit.Retrofit;
+import io.ruoyan.pxnavigator.helper.DayHelper;
+import io.ruoyan.pxnavigator.helper.PhotoCacheHelper;
 
 /**
  * Created by ruoyan on 12/20/15.
  */
-public class PhotoListFragment extends Fragment implements Observer{
+public class PhotoListFragment extends Fragment implements Observer, Request.Callback{
     private static final int PHOTO_PER_ROW = 3;
     private static final int PHOTO_PER_CATEGORY = 100;
     private static final int MAP_UPDATE_INTERVAL = 100;
     private static final int MAP_INITIAL_DELAY = 1000;
     private static final String EXTRA_CATEGORY = "extra_category";
-    private static final String BASE_URL = "http://159.203.117.77";
 
     @InjectView(R.id.popPhotoRecyclerView)
     RecyclerView mPopPhotoRecyclerView;
+
+    @InjectView(R.id.progressbar)
+    View mProgressbar;
 
     private GridPhotosAdapter mGridPhotosAdapter;
     private StaggeredGridLayoutManager mLayoutManager;
@@ -58,7 +57,7 @@ public class PhotoListFragment extends Fragment implements Observer{
         Bundle bundle = new Bundle();
         bundle.putString(EXTRA_CATEGORY, category.toString());
         fragment.setArguments(bundle);
-        DayObservable.instance().attach(fragment);
+        DayHelper.instance().attach(fragment);
         return fragment;
     }
 
@@ -67,7 +66,7 @@ public class PhotoListFragment extends Fragment implements Observer{
         super.onCreate(savedInstanceState);
         Bundle bundle = getArguments();
         mCategory = Category.valueOf(bundle.getString(EXTRA_CATEGORY));
-        mDay = DayObservable.instance().getDay();
+        mDay = DayHelper.instance().getDay();
     }
 
     @Nullable
@@ -76,7 +75,8 @@ public class PhotoListFragment extends Fragment implements Observer{
         View view = inflater.inflate(R.layout.fragment_photo_list, container,
                 false);
         ButterKnife.inject(this, view);
-        if (PhotoCacheUtils.getPhotoInfo(mCategory, mDay) != null)
+        mProgressbar.setVisibility(View.VISIBLE);
+        if (PhotoCacheHelper.getPhotoInfo(mCategory, mDay) != null)
             setupPopPhotosGrid();
         return view;
     }
@@ -91,7 +91,7 @@ public class PhotoListFragment extends Fragment implements Observer{
     }
 
     private void loadPhotoInfo() {
-        if (PhotoCacheUtils.getPhotoInfo(mCategory, mDay) == null) {//first time to request data
+        if (PhotoCacheHelper.getPhotoInfo(mCategory, mDay) == null) {//first time to request data
             requestPhotos();
         }
         else { //data already exists
@@ -101,42 +101,27 @@ public class PhotoListFragment extends Fragment implements Observer{
     }
 
     private void requestPhotos() {
-        final View progressbar = getActivity().findViewById(R.id.progressbar);
-        progressbar.setVisibility(View.VISIBLE);
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        ApiService service = retrofit.create(ApiService.class);
-
+        PopPhotoRequest request = new PopPhotoRequest(getResources().getString(R.string
+                .my_backend_base_url),
+                PopPhotoApiService.class);
         HashMap<String, String> queryParameters = new HashMap<>();
         queryParameters.put("day", mDay);
         queryParameters.put("category", mCategory.name());
+        request.setQueryParameters(queryParameters);
+        request.setCallback(this);
+        request.executeRequest();
+    }
 
-        Call<List<Photo>> call = service.requestPhotos(queryParameters);
-        call.enqueue(new Callback<List<Photo>>() {
-            @Override
-            public void onResponse(Response<List<Photo>> response, Retrofit retrofit) {
-                List<Photo> photos;
-                try {
-                    photos = response.body();
-                } catch (Exception e) {
-                    photos = null;
-                }
-                PhotoCacheUtils.setPhotoInfo(mCategory, mDay, new ArrayList<>(photos));
-                progressbar.setVisibility(View.GONE);
-                setupPopPhotosGrid();
-                updateMap(getVisiblePhotoPositions());
-            }
-
-            @Override
-            public void onFailure(Throwable t) {
-            }
-        });
+    @Override
+    public void onResult(Object result) {
+        List<Photo> photos = new ArrayList<>((List<Photo>)result);
+        PhotoCacheHelper.setPhotoInfo(mCategory, mDay, new ArrayList<>(photos));
+        setupPopPhotosGrid();
+        updateMap(getVisiblePhotoPositions());
     }
 
     private void setupPopPhotosGrid() {
+        mProgressbar.setVisibility(View.GONE);
         mPopPhotoRecyclerView.setVisibility(View.VISIBLE);
         mGridPhotosAdapter = new GridPhotosAdapter(getActivity(), PHOTO_PER_ROW, mCategory, mDay);
         mPopPhotoRecyclerView.setAdapter(mGridPhotosAdapter);
@@ -157,11 +142,11 @@ public class PhotoListFragment extends Fragment implements Observer{
 
     private void updateMap(final int[] visiblePhotoPositions) {
         final MapManager manager = MapManager.getMapManager(getActivity());
-        boolean initialized = MapUtils.getAppStatus();
+        boolean initialized = MyApp.getAppStatus();
         int delay = MAP_UPDATE_INTERVAL;
         if (!initialized) {
             delay = MAP_INITIAL_DELAY;
-            MapUtils.setAppStatus(true);
+            MyApp.setAppStatus(true);
         }
         Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
@@ -192,7 +177,9 @@ public class PhotoListFragment extends Fragment implements Observer{
     }
 
     @Override
+    //update the day variable when the day selection changes, controlled by the observable
     public void update(Subject subject) {
-        mDay = DayObservable.instance().getDay();
+        mDay = DayHelper.instance().getDay();
     }
+
 }

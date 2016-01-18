@@ -12,7 +12,7 @@ import io.ruoyan.pxnavigator.R;
 import io.ruoyan.pxnavigator.model.Category;
 import io.ruoyan.pxnavigator.model.Photo;
 import io.ruoyan.pxnavigator.ui.adapter.PhotoGalleryPagerAdapter;
-import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
+import io.ruoyan.pxnavigator.helper.PhotoCacheHelper;
 
 public class PhotoGalleryActivity extends AppCompatActivity {
     private static final String INTENT_EXTRA_PHOTO_CATEGORY = "PHOTO_CATEGORY";
@@ -32,7 +32,7 @@ public class PhotoGalleryActivity extends AppCompatActivity {
         Category category = Category.valueOf(getIntent().getStringExtra
                 (INTENT_EXTRA_PHOTO_CATEGORY));
         String day = getIntent().getStringExtra(INTENT_EXTRA_PHOTO_DAY);
-        List<Photo> photos = PhotoCacheUtils.getPhotoInfo(category, day);
+        List<Photo> photos = PhotoCacheHelper.getPhotoInfo(category, day);
         int position = getIntent().getIntExtra(INTENT_EXTRA_PHOTO_POSITION, 0);
 
         mViewPager.setAdapter(new PhotoGalleryPagerAdapter(PhotoGalleryActivity.this, photos));

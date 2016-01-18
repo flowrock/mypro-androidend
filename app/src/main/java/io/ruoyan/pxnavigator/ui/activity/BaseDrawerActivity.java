@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import butterknife.InjectView;
 import io.ruoyan.pxnavigator.R;
-import io.ruoyan.pxnavigator.utils.PhotoCacheUtils;
+import io.ruoyan.pxnavigator.helper.PhotoCacheHelper;
 
 /**
  * Modified by Ruoyan Liu on 07.12.15.
@@ -45,7 +45,7 @@ public class BaseDrawerActivity extends BaseActivity {
     }
 
     protected void refreshFeed() {
-        PhotoCacheUtils.clearCache();
+        PhotoCacheHelper.clearCache();
     }
 
     @Override

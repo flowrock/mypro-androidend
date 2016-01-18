@@ -2,6 +2,8 @@ package io.ruoyan.pxnavigator.ui.adapter;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.util.Log;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -12,7 +14,7 @@ import io.ruoyan.pxnavigator.ui.fragment.PhotoListFragment;
 /**
  * Created by ruoyan on 12/25/15.
  */
-public class FeedPagerAdapter extends android.support.v4.app.FragmentPagerAdapter {
+public class FeedPagerAdapter extends FragmentStatePagerAdapter {
 
     private Map<Category, Fragment> mfragmentCache;
 
